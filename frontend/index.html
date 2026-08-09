@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Departures — Travel Planning Agent</title>
+<meta name="description" content="Plan a trip: get an AI-generated itinerary, hotel and restaurant picks, transport options, and a cost estimate." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<div class="topbar">
+  <div class="wrap topbar-inner">
+    <div class="brand">
+      Departures <span class="tag">Travel Planning Agent</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:18px;">
+      <div class="status">
+        <span class="status-dot" id="status-dot" data-state="unknown"></span>
+        <span id="status-text">checking…</span>
+      </div>
+      <button class="api-config" id="api-config-btn" type="button">API settings</button>
+    </div>
+  </div>
+
+  <div class="popover" id="api-popover">
+    <label for="api-base-input">API base URL</label>
+    <input type="text" id="api-base-input" placeholder="http://localhost:8000/api/v1" />
+    <div class="row">
+      <button type="button" id="api-cancel-btn">Cancel</button>
+      <button type="button" id="api-save-btn">Save &amp; recheck</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <section class="hero">
+    <div class="hero-grid">
+      <div class="board">
+        <p class="board-eyebrow">Now boarding</p>
+        <h1>Where to,<br /><span class="flip" id="flip-destination">Kyoto?</span></h1>
+        <p class="lede">
+          Tell the agent your dates, budget, and interests. It checks the
+          weather, searches attractions, restaurants and hotels, works out
+          transport, and totals the cost — then sticks around for follow-up
+          questions.
+        </p>
+        <div class="board-stats">
+          <div><span class="n">7</span><span class="l">tools on call</span></div>
+          <div><span class="n">1</span><span class="l">session, full memory</span></div>
+          <div><span class="n">&infin;</span><span class="l">follow-ups</span></div>
+        </div>
+      </div>
+
+      <div class="pass">
+        <div class="pass-head">
+          <span class="title">Trip request</span>
+          <span class="code" id="pass-code">NEW · —</span>
+        </div>
+        <div class="pass-body">
+
+          <div class="banner error" id="form-error">
+            <span class="stamp">Declined</span>
+            <span id="form-error-text"></span>
+          </div>
+
+          <form id="trip-form" novalidate>
+            <div class="field-grid">
+              <div class="field span-2">
+                <label for="destination">Destination</label>
+                <input type="text" id="destination" name="destination" placeholder="Kyoto, Japan" required />
+              </div>
+
+              <div class="field">
+                <label for="start_date">Departs</label>
+                <input type="date" id="start_date" name="start_date" required />
+              </div>
+              <div class="field">
+                <label for="end_date">Returns</label>
+                <input type="date" id="end_date" name="end_date" required />
+              </div>
+
+              <div class="field">
+                <label for="origin_city">Origin city</label>
+                <input type="text" id="origin_city" name="origin_city" placeholder="New York, USA" />
+              </div>
+              <div class="field">
+                <label for="travelers">Travelers</label>
+                <input type="number" id="travelers" name="travelers" min="1" max="30" value="2" required />
+              </div>
+
+              <div class="field span-2">
+                <label for="budget_amount">Total budget</label>
+                <div class="budget-row">
+                  <input type="number" id="budget_amount" name="budget_amount" min="1" step="1" placeholder="3000" required />
+                  <input type="text" id="budget_currency" name="budget_currency" value="USD" maxlength="3" />
+                  <select id="budget_level" name="budget_level">
+                    <option value="budget">Budget</option>
+                    <option value="mid_range" selected>Mid-range</option>
+                    <option value="luxury">Luxury</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="field span-2">
+                <label>Interests</label>
+                <div class="chips" id="interest-chips">
+                  <!-- populated by app.js -->
+                </div>
+              </div>
+
+              <div class="field span-2">
+                <label for="notes">Notes (dietary, pace, mobility…)</label>
+                <textarea id="notes" name="notes" placeholder="Vegetarian, prefer a relaxed pace, traveling with a toddler…"></textarea>
+              </div>
+            </div>
+
+            <div class="submit-row">
+              <button type="submit" class="btn btn-primary" id="submit-btn">Plan the trip</button>
+              <button type="button" class="btn btn-ghost" id="new-trip-btn" style="display:none;">Start a new trip</button>
+              <span class="form-hint" id="form-hint">Takes 10–30s — the agent is calling live tools.</span>
+            </div>
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="results" id="results">
+    <div class="ticket">
+      <div class="ticket-stub">
+        <div class="stub-field">
+          <p class="l">Destination</p>
+          <p class="v" id="stub-destination">—</p>
+        </div>
+        <div class="stub-field">
+          <p class="l">Duration</p>
+          <p class="v" id="stub-duration">—</p>
+        </div>
+        <div class="stub-field">
+          <p class="l">Travelers</p>
+          <p class="v" id="stub-travelers">—</p>
+        </div>
+        <div class="stub-field">
+          <p class="l">PNR / Session</p>
+          <p class="v mono" id="stub-session">—</p>
+        </div>
+      </div>
+      <div class="perforation"></div>
+      <div class="ticket-body">
+        <div class="stamps" id="tools-used"></div>
+        <div class="itinerary" id="itinerary-content"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="tower" id="tower">
+    <div class="tower-head">
+      <h2>Control tower</h2>
+      <span class="hint">Ask follow-up questions — the agent remembers this trip</span>
+    </div>
+
+    <div class="banner error" id="chat-error">
+      <span class="stamp">No signal</span>
+      <span id="chat-error-text"></span>
+    </div>
+
+    <div class="log" id="log">
+      <div class="log-empty">No transmissions yet. Ask about restaurants, swap a day, adjust the budget…</div>
+    </div>
+
+    <form class="composer" id="followup-form">
+      <input type="text" id="followup-input" placeholder="e.g. Suggest a vegetarian dinner for day 3" autocomplete="off" />
+      <button type="submit" class="btn btn-primary" id="followup-btn">Send</button>
+    </form>
+  </section>
+
+</div>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <p>Departures runs entirely against your own Travel Planning Agent API. Nothing is sent anywhere else.</p>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

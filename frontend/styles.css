@@ -1,0 +1,863 @@
+/* ==========================================================================
+   Travel Planning Agent — Frontend Styles
+   Design concept: "Departures" — a departure-board + boarding-pass idiom.
+   Tokens:
+     --ink        #14213D  primary dark (text, dark surfaces)
+     --ink-soft   #4A5568  secondary text
+     --paper      #EDEAE0  page background (cool parchment, not warm cream)
+     --paper-2    #FFFFFF  card surface
+     --amber      #E8A33D  departure-board amber (primary accent)
+     --teal       #2F6F62  visa-stamp teal (secondary accent / success)
+     --red        #C4423A  delayed/error accent
+   Type:
+     Display  -> 'Space Grotesk'  (headline, board numerals, labels)
+     Body     -> 'IBM Plex Sans'  (paragraphs, itinerary text)
+     Utility  -> 'IBM Plex Mono'  (dates, codes, prices, timestamps)
+   ========================================================================== */
+
+:root {
+  --ink: #14213d;
+  --ink-soft: #4a5568;
+  --ink-faint: #8891a3;
+  --paper: #edeae0;
+  --paper-2: #ffffff;
+  --amber: #e8a33d;
+  --amber-dim: #f6e2bd;
+  --teal: #2f6f62;
+  --teal-dim: #dde9e5;
+  --red: #c4423a;
+  --red-dim: #f5dedc;
+  --line: #d8d3c4;
+
+  --font-display: "Space Grotesk", "Arial Narrow", sans-serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", "Consolas", monospace;
+
+  --radius: 10px;
+  --shadow-card: 0 1px 2px rgba(20, 33, 61, 0.06), 0 8px 24px rgba(20, 33, 61, 0.08);
+  --max-width: 1120px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: var(--teal);
+}
+
+button {
+  font-family: inherit;
+}
+
+/* Visible focus ring everywhere, respects a11y regardless of mouse/touch styling elsewhere */
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+.wrap {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Top bar                                                                 */
+/* ---------------------------------------------------------------------- */
+.topbar {
+  border-bottom: 1px solid var(--line);
+  background: var(--paper);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.topbar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 0;
+}
+
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: 0.02em;
+}
+
+.brand .tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  color: var(--ink-faint);
+  text-transform: uppercase;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ink-faint);
+  box-shadow: 0 0 0 3px rgba(20, 33, 61, 0.06);
+  transition: background 0.2s ease;
+}
+
+.status-dot[data-state="ok"] { background: var(--teal); box-shadow: 0 0 0 3px var(--teal-dim); }
+.status-dot[data-state="warn"] { background: var(--amber); box-shadow: 0 0 0 3px var(--amber-dim); }
+.status-dot[data-state="down"] { background: var(--red); box-shadow: 0 0 0 3px var(--red-dim); }
+
+.api-config {
+  background: transparent;
+  border: none;
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Hero / split departures header + boarding-pass form                    */
+/* ---------------------------------------------------------------------- */
+.hero {
+  padding: 56px 0 40px;
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr;
+  gap: 48px;
+  align-items: start;
+}
+
+.board {
+  padding-top: 8px;
+}
+
+.board-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--teal);
+  margin: 0 0 14px;
+}
+
+.board-eyebrow::before {
+  content: "● ";
+  color: var(--amber);
+}
+
+.board h1 {
+  font-family: var(--font-display);
+  font-size: clamp(38px, 5vw, 56px);
+  line-height: 1.02;
+  letter-spacing: -0.01em;
+  margin: 0 0 20px;
+}
+
+.board .flip {
+  display: inline-block;
+  color: var(--teal);
+  border-bottom: 3px solid var(--amber);
+}
+
+.board p.lede {
+  font-size: 17px;
+  color: var(--ink-soft);
+  max-width: 46ch;
+  margin: 0 0 28px;
+}
+
+.board-stats {
+  display: flex;
+  gap: 28px;
+  font-family: var(--font-mono);
+  border-top: 1px dashed var(--line);
+  padding-top: 20px;
+}
+
+.board-stats div span.n {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 22px;
+  color: var(--ink);
+}
+
+.board-stats div span.l {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-top: 2px;
+}
+
+/* ---- Boarding pass form card ---- */
+.pass {
+  background: var(--paper-2);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.pass-head {
+  background: var(--ink);
+  color: var(--paper);
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pass-head .title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.pass-head .code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--amber);
+  letter-spacing: 0.08em;
+}
+
+.pass-body {
+  padding: 24px;
+}
+
+.field-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.field.span-2 {
+  grid-column: 1 / -1;
+}
+
+.field label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.field input[type="text"],
+.field input[type="date"],
+.field input[type="number"],
+.field select,
+.field textarea {
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 10px 12px;
+  width: 100%;
+}
+
+.field textarea {
+  resize: vertical;
+  min-height: 64px;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: var(--ink);
+  background: var(--paper-2);
+}
+
+.budget-row {
+  display: grid;
+  grid-template-columns: 1fr 90px 1fr;
+  gap: 10px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.03em;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--ink-soft);
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+.chip:hover {
+  border-color: var(--ink-faint);
+}
+
+.chip[aria-pressed="true"] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--amber);
+}
+
+.submit-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px dashed var(--line);
+}
+
+.btn {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 6px;
+  padding: 13px 22px;
+  cursor: pointer;
+  transition: transform 0.08s ease, opacity 0.15s ease;
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn-primary {
+  background: var(--amber);
+  color: var(--ink);
+}
+
+.btn-primary:hover {
+  opacity: 0.92;
+}
+
+.btn-primary:disabled {
+  opacity: 0.55;
+  cursor: progress;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--ink-soft);
+  border: 1px solid var(--line);
+}
+
+.btn-ghost:hover {
+  border-color: var(--ink-faint);
+}
+
+.form-hint {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ink-faint);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Alert banner                                                           */
+/* ---------------------------------------------------------------------- */
+.banner {
+  display: none;
+  align-items: flex-start;
+  gap: 10px;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.banner.show {
+  display: flex;
+}
+
+.banner.error {
+  background: var(--red-dim);
+  color: var(--red);
+  border: 1px solid rgba(196, 66, 58, 0.25);
+}
+
+.banner .stamp {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  border: 1.5px solid currentColor;
+  border-radius: 4px;
+  padding: 2px 6px;
+  transform: rotate(-3deg);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Results: the ticket / itinerary panel                                  */
+/* ---------------------------------------------------------------------- */
+.results {
+  display: none;
+  padding: 8px 0 48px;
+}
+
+.results.show {
+  display: block;
+}
+
+.ticket {
+  background: var(--paper-2);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.ticket-stub {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  gap: 16px;
+  align-items: center;
+  background: var(--ink);
+  color: var(--paper);
+  padding: 20px 24px;
+}
+
+.stub-field .l {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 0 0 4px;
+}
+
+.stub-field .v {
+  font-family: var(--font-display);
+  font-size: 17px;
+  color: var(--paper);
+}
+
+.stub-field .v.mono {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--amber);
+}
+
+/* Perforated tear line between stub and itinerary content */
+.perforation {
+  position: relative;
+  height: 0;
+  border-top: 2px dashed var(--line);
+  margin: 0;
+}
+
+.perforation::before,
+.perforation::after {
+  content: "";
+  position: absolute;
+  top: -9px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--paper);
+}
+
+.perforation::before { left: -9px; }
+.perforation::after { right: -9px; }
+
+.ticket-body {
+  padding: 32px 36px;
+}
+
+.stamps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.stamp-pill {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--teal);
+  background: var(--teal-dim);
+  border: 1px solid rgba(47, 111, 98, 0.25);
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+
+/* Rendered markdown itinerary content */
+.itinerary {
+  font-size: 15.5px;
+  color: var(--ink);
+}
+
+.itinerary h1,
+.itinerary h2 {
+  font-family: var(--font-display);
+  color: var(--ink);
+  margin: 28px 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+.itinerary h1:first-child,
+.itinerary h2:first-child {
+  margin-top: 0;
+}
+
+.itinerary h3 {
+  font-family: var(--font-display);
+  font-size: 16px;
+  margin: 22px 0 8px;
+  color: var(--teal);
+}
+
+.itinerary p {
+  margin: 0 0 12px;
+  color: var(--ink-soft);
+}
+
+.itinerary ul,
+.itinerary ol {
+  margin: 0 0 16px;
+  padding-left: 22px;
+  color: var(--ink-soft);
+}
+
+.itinerary li {
+  margin-bottom: 6px;
+}
+
+.itinerary strong {
+  color: var(--ink);
+}
+
+.itinerary table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0 20px;
+  font-size: 14px;
+}
+
+.itinerary th,
+.itinerary td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.itinerary th {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+
+.itinerary code {
+  font-family: var(--font-mono);
+  background: var(--paper);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+.itinerary hr {
+  border: none;
+  border-top: 1px dashed var(--line);
+  margin: 24px 0;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Follow-up: control-tower transmission log                              */
+/* ---------------------------------------------------------------------- */
+.tower {
+  display: none;
+  padding-bottom: 72px;
+}
+
+.tower.show {
+  display: block;
+}
+
+.tower-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.tower-head h2 {
+  font-family: var(--font-display);
+  font-size: 18px;
+  margin: 0;
+}
+
+.tower-head .hint {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ink-faint);
+}
+
+.log {
+  background: var(--paper-2);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  padding: 20px 24px;
+  max-height: 420px;
+  overflow-y: auto;
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.log-empty {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--ink-faint);
+  text-align: center;
+  padding: 24px 0;
+}
+
+.msg {
+  max-width: 78%;
+  font-size: 14.5px;
+  line-height: 1.5;
+}
+
+.msg .meta {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 4px;
+}
+
+.msg .bubble {
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+.msg.user {
+  align-self: flex-end;
+  text-align: right;
+}
+
+.msg.user .bubble {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.msg.agent .bubble {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  color: var(--ink);
+}
+
+.msg.agent .bubble p:last-child {
+  margin-bottom: 0;
+}
+
+.composer {
+  display: flex;
+  gap: 10px;
+}
+
+.composer input {
+  flex: 1;
+  font-family: var(--font-body);
+  font-size: 15px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper-2);
+}
+
+.composer input:focus {
+  border-color: var(--ink);
+}
+
+/* ---------------------------------------------------------------------- */
+/* API config popover                                                     */
+/* ---------------------------------------------------------------------- */
+.popover {
+  display: none;
+  position: absolute;
+  right: 24px;
+  top: 56px;
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: var(--shadow-card);
+  padding: 16px;
+  width: 320px;
+  z-index: 30;
+}
+
+.popover.show {
+  display: block;
+}
+
+.popover label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  display: block;
+  margin-bottom: 6px;
+}
+
+.popover input {
+  width: 100%;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+
+.popover .row {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.popover .row button {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 7px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  cursor: pointer;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Loading state ("boarding" animated ellipsis)                           */
+/* ---------------------------------------------------------------------- */
+.boarding::after {
+  content: "";
+  animation: dots 1.2s steps(4, end) infinite;
+}
+
+@keyframes dots {
+  0% { content: ""; }
+  25% { content: "."; }
+  50% { content: ".."; }
+  75% { content: "..."; }
+  100% { content: ""; }
+}
+
+/* ---------------------------------------------------------------------- */
+/* Footer                                                                  */
+/* ---------------------------------------------------------------------- */
+.site-footer {
+  border-top: 1px solid var(--line);
+  padding: 24px 0 48px;
+}
+
+.site-footer p {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ink-faint);
+  margin: 0;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Responsive                                                              */
+/* ---------------------------------------------------------------------- */
+@media (max-width: 860px) {
+  .hero-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .field-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .budget-row {
+    grid-template-columns: 1fr;
+  }
+
+  .ticket-stub {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .msg {
+    max-width: 90%;
+  }
+
+  .popover {
+    right: 16px;
+    left: 16px;
+    width: auto;
+  }
+}

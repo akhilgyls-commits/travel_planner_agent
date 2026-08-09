@@ -1,0 +1,20 @@
+services:
+  travel-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: travel-planner-agent:latest
+    container_name: travel-planner-agent
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - PORT=8000
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
